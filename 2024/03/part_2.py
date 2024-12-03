@@ -6,7 +6,7 @@ file = "live.txt"
 memory =  open(file).read()
 #print(memory)
 
-matches = re.findall(r"mul\(\d{1,3},\d{1,3}\)|do\(\)|don't\(\)", memory)
+matches = re.findall(r"mul\(\d{1,3},\d{1,3}\)|do(?:n't)?\(\)", memory)
 #print(matches)
 
 total = 0
