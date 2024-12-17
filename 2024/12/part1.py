@@ -22,17 +22,23 @@ def are_flowers_connected(flower1: tuple, flower2: tuple) -> bool:
     return abs(x1 - x2) + abs(y1 - y2) == 1
 
 def split_isles(flowers: set) -> list:
+    # split isles into connected isles
+
     connected_isles = list()
     for flower in flowers:
-        found = False
-        for isle in connected_isles: 
-            for isle_flower in isle:
-                if flower == isle_flower: continue
-                if are_flowers_connected(flower, isle_flower):
-                    isle.add(flower)
-                    found = True
+        # check if flower is connected to any connected isle
+        connected = False
+        for connected_isle in connected_isles:
+            for connected_flower in connected_isle:
+                if are_flowers_connected(flower, connected_flower):
+                    connected_isle.add(flower)
+                    connected = True
                     break
-        if not found:
+            if connected:
+                break
+
+        if not connected:
+            # create new connected isle
             connected_isles.append({flower})
     return connected_isles
 
