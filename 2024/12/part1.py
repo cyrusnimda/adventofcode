@@ -1,61 +1,76 @@
+from collections import deque
 
-file = "live.txt"
-file = "demo.txt"
-file = "small.txt"
 
-grid = list(map(list,open(file, "r").read().split()))
-print(grid)
 
-# Find all isles, even if they are not connected
-isles = {}
-for x in range(len(grid)):
-    for y in range(len(grid[x])):
-        value= grid[x][y]
-        if not value in isles:
-            isles[value] = set()
+def bfs(grid, start):
+    visitado = set()
+    q = deque([start])
+    visitado.add(start)
 
-        isles[value].add((x,y))
-print()
-def are_flowers_connected(flower1: tuple, flower2: tuple) -> bool:
-    x1, y1 = flower1
-    x2, y2 = flower2
-    return abs(x1 - x2) + abs(y1 - y2) == 1
+    while q:
+        i, j = q.popleft()
+        print(f"Visitando: ({i}, {j}) valor: {grid[i][j]}")
 
-def split_isles(flowers: set) -> list:
-    # split isles into connected isles
+        # process neighbors
+        for di, dj in neightbors(grid, i, j, grid[start[0]][start[1]]):
+            if (di, dj) not in visitado:
+                visitado.add((di, dj))
+                q.append((di, dj))
 
-    connected_isles = list()
-    for flower in flowers:
-        # check if flower is connected to any connected isle
-        connected = False
-        for connected_isle in connected_isles:
-            for connected_flower in connected_isle:
-                if are_flowers_connected(flower, connected_flower):
-                    connected_isle.add(flower)
-                    connected = True
-                    break
-            if connected:
-                break
+    return visitado
 
-        if not connected:
-            # create new connected isle
-            connected_isles.append({flower})
-    return connected_isles
 
-def get_price_for_region(connected_isles: list) -> int:
-    area = len(connected_isles)
-    perimeter = 123
-    return area * perimeter
+def neightbors(node):
+    row, col = node
+    return [(row-1, col), (row+1, col), (row, col-1), (row, col+1)]
 
-# Split isles into connected isles
-total_isles = 0
-for isle, coords in isles.items():
-    print(isle, coords)
-    connected_split_isles = split_isles(coords)
-    print(connected_split_isles, "=>", len(connected_split_isles))
-    price_for_region = get_price_for_region(connected_split_isles)
-    total_isles += len(connected_split_isles)
-    print()
 
-# Count total number of isles
-print("Total isles:", total_isles)
+def is_valid_node(grid, row, col):
+    return 0 <= row < len(grid) and 0 <= col < len(grid[0])
+
+
+grid =  list(map(list,open("large.txt").read().split("\n")))
+rows, cols = len(grid), len(grid[0])
+regions = []
+seen = set()
+
+for r in range(rows):
+    for c in range(cols):
+        current_node = (r,c)
+        if current_node not in seen:
+            seen.add(current_node)
+            region_actual = set()
+            region_actual.add(current_node)
+
+            #BFS
+            q = deque([current_node])
+            flower_type = grid[r][c]
+
+            while q:
+                node = q.popleft()
+                for neighbor in neightbors(node):
+                    if not is_valid_node(grid, neighbor[0], neighbor[1]): continue
+                    if grid[neighbor[0]][neighbor[1]] != flower_type: continue
+                    if neighbor not in region_actual:
+                        seen.add(neighbor)
+                        q.append(neighbor)
+                        region_actual.add(neighbor)
+            
+            regions.append(region_actual)
+
+
+def perimeter(region: set) -> int:
+    total = 0
+    for node in region:
+        node_neightbors = neightbors(node)
+        # check how many are in the region
+        number_of_neighbors = 0
+        for neighbor in node_neightbors:
+            if neighbor in region:
+                number_of_neighbors += 1
+        total += (4 - number_of_neighbors)
+    return total
+
+
+print("Total regions:", len(regions))
+print(sum(len(region) * perimeter(region) for region in regions))
